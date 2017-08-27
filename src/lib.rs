@@ -2,6 +2,7 @@
 
 mod scanner;
 mod token;
+mod expr;
 
 use std::fs::File;
 use std::io::prelude::*;
@@ -55,5 +56,26 @@ impl Lox {
     pub fn report(&mut self, line: usize, at: &str, message: &str) {
         println!("[line {line}] Error{at}: {message}", line=line, at=at, message=message);
         self.had_error = true;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::expr::Expr;
+    use super::token::Token;
+    use super::token::TokenType;
+    use super::token::Literal;
+    #[test]
+    fn print_ast() {
+        let expr = Expr::Binary(
+            Box::new(Expr::Unary(
+                Token::new(TokenType::Minus, String::from("-"), Literal::Nil, 1),
+                Box::new(Expr::Literal(Literal::Number(123.0))))),
+            Token::new(TokenType::Star, String::from("*"), Literal::Nil, 1),
+            Box::new(Expr::Grouping(
+                Box::new(Expr::Literal(Literal::Number(45.67))))));
+
+        let expr_str = format!("{}", expr).to_owned();
+        assert_eq!(expr_str, "(* (- 123) (group 45.67))");
     }
 }
