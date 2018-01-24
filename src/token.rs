@@ -1,7 +1,7 @@
 use std::fmt;
 use std::cmp::Ordering;
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TokenType {
     LeftParen, RightParen, LeftBrace, RightBrace,
     Comma, Dot, Minus, Plus, Semicolon, Slash, Star,
@@ -60,11 +60,12 @@ impl fmt::Display for Literal {
     }
 }
 
+#[derive(Clone)]
 pub struct Token {
-    token_type: TokenType,
+    pub token_type: TokenType,
     pub lexeme: String,
-    literal: Literal,
-    line: usize
+    pub literal: Literal,
+    pub line: usize
 }
 
 impl Token {

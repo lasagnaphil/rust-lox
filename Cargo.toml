@@ -4,4 +4,3 @@ version = "0.1.0"
 authors = ["Phillip Chang <lasagnaphil@snu.ac.kr>"]
 
 [dependencies]
-maplit = "0.1.4"

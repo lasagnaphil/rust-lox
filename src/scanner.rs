@@ -1,35 +1,30 @@
 use super::token::Token;
 use super::token::TokenType;
 use super::token::Literal;
-use super::Lox;
+use super::lox;
 
-use std::collections::HashMap;
-
-pub struct Scanner<'a> {
+pub struct Scanner {
     source: Vec<char>,
     tokens: Vec<Token>,
 
     start: usize,
     current: usize,
     line: usize,
-
-    lox: &'a mut Lox
 }
 
-impl<'a> Scanner<'a> {
-    pub fn new(source: &str, lox: &'a mut Lox) -> Self {
+impl Scanner {
+    pub fn new(source: &str) -> Self {
         Scanner {
             source: source.chars().collect(),
             tokens: vec![],
             start: 0, current: 0, line: 1,
-            lox: lox
         }
     }
 
-    pub fn scan_tokens(&mut self) -> &[Token] {
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, lox::Error> {
         while !self.is_at_end() {
             self.start = self.current;
-            self.scan_token();
+            self.scan_token()?;
         }
         self.tokens.push(Token::new( 
             TokenType::Eof,
@@ -37,10 +32,10 @@ impl<'a> Scanner<'a> {
             Literal::Nil,
             self.line
         ));
-        &self.tokens[..]
+        Ok(self.tokens.clone())
     }
 
-    fn scan_token(&mut self) {
+    fn scan_token(&mut self) -> Result<(), lox::Error> {
         let c = self.advance();
         match c {
             '(' => self.add_token(TokenType::LeftParen),
@@ -76,11 +71,15 @@ impl<'a> Scanner<'a> {
             },
             ' ' | '\r' | '\t' => {},
             '\n' => { self.line += 1; },
-            '"' => self.string(),
+            '"' => self.string()?,
             '0'...'9' => self.number(),
             'a'...'z' | 'A'...'Z' | '_' => self.identifier(),
-            _ => self.lox.error(self.line, &format!("Unexpected character: {}", c).to_owned()),
+            _ => {
+                return Err(lox::Error::from_line(self.line, 
+                                           &format!("Unexpected character: {}", c).to_owned()));
+            }
         }
+        Ok(())
     }
 
     fn is_at_end(&self) -> bool {
@@ -141,21 +140,21 @@ impl<'a> Scanner<'a> {
         }
     }
 
-    fn string(&mut self) {
+    fn string(&mut self) -> Result<(), lox::Error> {
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' { self.line += 1; }
             self.advance();
         }
 
         if self.is_at_end() {
-            self.lox.error(self.line, "Unterminated string.");
-            return;
+            return Err(lox::Error::from_line(self.line, "Unterminated string."));
         }
 
         self.advance();
 
         let value = self.source[(self.start + 1)..(self.current - 1)].into_iter().collect();
         self.add_token_with_literal(TokenType::Str, Literal::Str(value));
+        Ok(())
     }
 
     fn number(&mut self) {
