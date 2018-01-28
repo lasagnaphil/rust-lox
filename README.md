@@ -7,8 +7,8 @@ Trying to learn Rust by making a Lox compiler (http://craftinginterpreters.com/)
 ## TODO
 - A tree-walk interpreter
     - [x] Scanning
-    - [ ] Representing Code
-    - [ ] Parsing Expressions
+    - [x] Representing Code
+    - [x] Parsing Expressions
     - [ ] Evaluating Expressions
     - [ ] Statements and State
     - [ ] Control Flow
